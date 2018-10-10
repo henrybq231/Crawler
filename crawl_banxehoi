@@ -1,0 +1,32 @@
+#!/usr/bin/python
+# -*- coding: latin-1 -*-
+# -*- coding: utf8 -*-
+import scrapy
+
+from unidecode import unidecode
+
+class crawl_info(scrapy.Spider):
+    name = "get_info"
+
+    custom_settings = {
+        'FEED_EXPORT_ENCODING': 'utf-8',
+    }
+
+    url = [
+        'https://banxehoi.com/ban-xe',
+    ]
+
+    for num in range(1, 51):
+        url.append('https://banxehoi.com/ban-xe/p%s' % num)
+
+    start_urls = url
+
+    def parse(self,response):
+        for info in response.css('div.info'):
+            yield {
+                'phone_number': info.css('div.mobile::text').extract_first(),
+                'date': info.css('div.newdate::text').extract_first().strip(),
+                'price': info.css('div.pricenew::text').extract_first().strip(),
+                'city': info.css('div.city a::text').extract_first(),
+                'title': info.xpath('h3 / a / text()').extract_first(),
+            }
