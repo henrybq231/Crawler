@@ -20,7 +20,7 @@ class PageSpider(scrapy.Spider):
         for article_url in response.css('.title_news a ::attr("href")').extract():
             yield response.follow(article_url, callback=self.parse_article)
 
-    def parse_article(self, response):k
+    def parse_article(self, response):
 
         item = {}
         item['content'] = response.xpath(".//article[@class='content_detail fck_detail width_common block_ads_connect']/descendant::text()").extract()
