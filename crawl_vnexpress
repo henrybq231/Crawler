@@ -1,0 +1,39 @@
+import scrapy
+
+
+class PageSpider(scrapy.Spider):
+    name = "page"
+
+    custom_settings = {
+        'FEED_EXPORT_ENCODING': 'utf-8',
+        'DOWNLOAD_DELAY': 0.3
+    }
+
+    url = []
+
+    for num in range(1, 3):
+        url.append('https://vnexpress.net/tin-tuc/thoi-su/page/%s.html' % num)
+
+    start_urls = url
+
+    def parse(self, response):
+        for article_url in response.css('.title_news a ::attr("href")').extract():
+            yield response.follow(article_url, callback=self.parse_article)
+
+    def parse_article(self, response):k
+
+        item = {}
+        item['content'] = response.xpath(".//article[@class='content_detail fck_detail width_common block_ads_connect']/descendant::text()").extract()
+        item['description'] = response.css('.description::text').extract_first().lstrip()
+        item['title'] = response.css('.title_news_detail::text').extract_first().lstrip()
+
+        for i in range(0, len(item['content'])-1):
+            item['content'][i] = item['content'][i].lstrip()
+        i = 0
+        while i < len(item['content']):
+            if item['content'][i] == "":
+                del item['content'][i]
+            else:
+                i += 1
+
+        yield item
