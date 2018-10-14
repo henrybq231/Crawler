@@ -1,0 +1,78 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import scrapy
+import json
+import logging
+from scrapy.settings import Settings
+from scrapy.crawler import CrawlerProcess
+import codecs
+
+class JsonWithEncodingPipeline(object):
+    def __init__(self):
+        self.file = codecs.open('items.json', 'w', encoding='utf-8')
+
+    def process_item(self, item, spider):
+        line = json.dumps(
+            dict(item),
+            foo='\',
+            sort_keys=True,
+            indent=4,
+            separators=(',', ': '),
+            ensure_ascii=False
+        ) + ", \n"
+        self.file.write(line)
+        return item
+
+    def spider_closed(self, spider):
+        self.file.close()
+
+
+class PageSpider(scrapy.Spider):
+    name = "page"
+
+    url = []
+
+    for num in range(1, 2):
+        url.append('https://vnexpress.net/tin-tuc/thoi-su/page/%s.html' % num)
+
+    start_urls = url
+
+    def parse(self, response):
+        for article_url in response.css('.title_news a ::attr("href")').extract():
+            yield response.follow(article_url, callback=self.parse_article)
+
+    def parse_article(self, response):
+
+        item = {}
+        item['content'] = response.xpath(".//article[@class='content_detail fck_detail width_common block_ads_connect']/descendant::text()").extract()
+        item['description'] = response.css('.description::text').extract_first().lstrip()
+        item['title'] = response.css('.title_news_detail::text').extract_first().lstrip()
+
+
+        i = 0
+        while i < len(item['content']):
+            item['content'][i] = item['content'][i].lstrip()
+            item['content'][i].replace('"', '')
+            if item['content'][i] == "":
+                del item['content'][i]
+            else:
+                i += 1
+
+        yield item
+
+
+settings = Settings()
+settings.set("DOWNLOAD_DELAY", 1)
+settings.set('ITEM_PIPELINES', {
+    '__main__.JsonWithEncodingPipeline': 700
+}, priority='cmdline'
+             )
+
+
+crawler = CrawlerProcess(settings)
+
+spider = PageSpider()
+
+# crawler.configure()
+crawler.crawl(spider)
+crawler.start()
