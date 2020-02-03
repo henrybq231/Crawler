@@ -7,6 +7,7 @@ from scrapy.crawler import CrawlerProcess
 from scrapy.item import Item, Field
 from scrapy.settings.default_settings import FEED_EXPORT_ENCODING, FEED_EXPORTERS, FEED_FORMAT, FEED_URI
 import datetime
+from scrapy.utils.project import get_project_settings
 
 
 class TextCleaningPipeline(object):
@@ -54,14 +55,15 @@ class CrawlerGeneral(scrapy.Spider):
     #name of spider
     name = 'general'
 
-    custom_settings = {
-        FEED_URI: 'spider1_' + datetime.datetime.today().strftime('%y%m%d') + '.json',
-        FEED_FORMAT: 'json',
-        FEED_EXPORTERS: {
-            'json': 'scrapy.exporters.JsonItemExporter',
-        },
-        FEED_EXPORT_ENCODING: 'utf-8',
-    }
+    # custom_settings = {
+    #     FEED_URI: 'spider1_' + datetime.datetime.today().strftime('%y%m%d') + '.json',
+    #     FEED_FORMAT: 'json',
+    #     'FEED_EXPORTERS': {
+    #         'json': 'scrapy.exporters.JsonItemExporter',
+    #     },
+    #     FEED_EXPORT_ENCODING: 'utf-8',
+    # }
+
 
     #list of url
     url = []
@@ -140,6 +142,14 @@ class CrawlerContent(scrapy.Spider):
     #
     #     yield article
 
+# custom_settings = {
+#     FEED_URI: 'spider1_' + datetime.datetime.today().strftime('%y%m%d') + '.json',
+#     FEED_FORMAT: 'json',
+#     FEED_EXPORTERS: {
+#         'json': 'scrapy.exporters.JsonItemExporter',
+#     },
+#     FEED_EXPORT_ENCODING: 'utf-8',
+# }
 
 settings = Settings()
 settings.set('ITEM_PIPELINES', {
@@ -152,11 +162,50 @@ settings.set('ITEM_PIPELINES', {
 }, priority='cmdline'
              )
 
-crawler = CrawlerProcess(settings)
+# crawler = CrawlerProcess(settings)
+#
+# # spider = CrawlerGeneral()
+#
+# # crawler.configure()
+# crawler.crawl(CrawlerGeneral)
+# crawler.crawl(CrawlerContent)
+# crawler.start()
 
-# spider = CrawlerGeneral()
+s2 = get_project_settings()
+s2['FEED_URI'] = 'spider2_' + datetime.datetime.today().strftime('%y%m%d') + '.json'
+s2['FEED_FORMAT'] = 'json'
+s2['FEED_EXPORTERS'] = {
+    'json': 'scrapy.exporters.JsonItemExporter'
+}
+s2['FEED_EXPORT_ENCODING'] = 'utf-8'
 
-# crawler.configure()
-crawler.crawl(CrawlerGeneral)
-crawler.crawl(CrawlerContent)
-crawler.start()
+spider_2 = CrawlerProcess(s2)
+spider_2.crawl(CrawlerContent)
+spider_2.start()
+
+
+
+s1 = get_project_settings()
+s1['FEED_URI'] = 'spider1_' + datetime.datetime.today().strftime('%y%m%d') + '.json'
+s1['FEED_FORMAT'] = 'json'
+s1['FEED_EXPORTERS'] = {
+    'json': 'scrapy.exporters.JsonItemExporter'
+}
+s1['FEED_EXPORT_ENCODING'] = 'utf-8'
+
+
+spider_1 = CrawlerProcess(s1)
+spider_1.crawl(CrawlerGeneral)
+spider_1.start()
+
+
+
+
+# custom_settings = {
+#         FEED_URI: 'spider1_' + datetime.datetime.today().strftime('%y%m%d') + '.json',
+#         FEED_FORMAT: 'json',
+#         'FEED_EXPORTERS': {
+#             'json': 'scrapy.exporters.JsonItemExporter',
+#         },
+#         FEED_EXPORT_ENCODING: 'utf-8',
+#     }
